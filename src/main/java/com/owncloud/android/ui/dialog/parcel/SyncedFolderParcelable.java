@@ -34,6 +34,7 @@ public class SyncedFolderParcelable implements Parcelable {
     private String mFolderName;
     private String mLocalPath;
     private String mRemotePath;
+    private String mFileNamePattern;
     private Boolean mWifiOnly = false;
     private Boolean mChargingOnly = false;
     private Boolean mEnabled = false;
@@ -52,6 +53,7 @@ public class SyncedFolderParcelable implements Parcelable {
         mFolderName = syncedFolderDisplayItem.getFolderName();
         mLocalPath = syncedFolderDisplayItem.getLocalPath();
         mRemotePath = syncedFolderDisplayItem.getRemotePath();
+        mFileNamePattern = syncedFolderDisplayItem.getFileNamePattern();
         mWifiOnly = syncedFolderDisplayItem.getWifiOnly();
         mChargingOnly = syncedFolderDisplayItem.getChargingOnly();
         mEnabled = syncedFolderDisplayItem.isEnabled();
@@ -67,6 +69,7 @@ public class SyncedFolderParcelable implements Parcelable {
         mFolderName = read.readString();
         mLocalPath = read.readString();
         mRemotePath = read.readString();
+        mFileNamePattern = read.readString();
         mWifiOnly = read.readInt()!= 0;
         mChargingOnly = read.readInt() != 0;
         mEnabled = read.readInt() != 0;
@@ -83,6 +86,7 @@ public class SyncedFolderParcelable implements Parcelable {
         dest.writeString(mFolderName);
         dest.writeString(mLocalPath);
         dest.writeString(mRemotePath);
+        dest.writeString(mFileNamePattern);
         dest.writeInt(mWifiOnly ? 1 : 0);
         dest.writeInt(mChargingOnly ? 1 : 0);
         dest.writeInt(mEnabled ? 1 : 0);
@@ -135,6 +139,10 @@ public class SyncedFolderParcelable implements Parcelable {
     public void setRemotePath(String mRemotePath) {
         this.mRemotePath = mRemotePath;
     }
+
+    public String getFileNamePattern() { return mFileNamePattern; }
+
+    public void setFileNamePattern(String mFileNamePattern) { this.mFileNamePattern = mFileNamePattern; }
 
     public Boolean getWifiOnly() {
         return mWifiOnly;

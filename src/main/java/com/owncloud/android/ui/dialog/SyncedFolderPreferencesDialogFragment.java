@@ -22,16 +22,20 @@ package com.owncloud.android.ui.dialog;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.owncloud.android.R;
@@ -45,6 +49,8 @@ import com.owncloud.android.utils.DisplayUtils;
 import com.owncloud.android.utils.ThemeUtils;
 
 import java.io.File;
+import java.util.Date;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -55,6 +61,7 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.DialogFragment;
 
 import static com.owncloud.android.datamodel.SyncedFolderDisplayItem.UNPERSISTED_ID;
+import static com.owncloud.android.utils.FileStorageUtils.getFileNameFromPattern;
 
 /**
  * Dialog to show the preferences/configuration of a synced folder allowing the user to change the different parameters.
@@ -76,6 +83,7 @@ public class SyncedFolderPreferencesDialogFragment extends DialogFragment {
     private TextView mLocalFolderPath;
     private TextView mLocalFolderSummary;
     private TextView mRemoteFolderSummary;
+    private EditText mFileNamePattern;
 
     private SyncedFolderParcelable mSyncedFolder;
     private AppCompatButton mCancel;
@@ -103,7 +111,7 @@ public class SyncedFolderPreferencesDialogFragment extends DialogFragment {
         super.onAttach(activity);
         if (!(activity instanceof OnSyncedFolderPreferenceListener)) {
             throw new IllegalArgumentException("The host activity must implement "
-                    + OnSyncedFolderPreferenceListener.class.getCanonicalName());
+                + OnSyncedFolderPreferenceListener.class.getCanonicalName());
         }
     }
 
@@ -153,7 +161,7 @@ public class SyncedFolderPreferencesDialogFragment extends DialogFragment {
 
             // switch text to create headline
             ((TextView) view.findViewById(R.id.synced_folders_settings_title))
-                    .setText(R.string.autoupload_create_new_custom_folder);
+                .setText(R.string.autoupload_create_new_custom_folder);
 
             // disable save button
             view.findViewById(R.id.save).setEnabled(false);
@@ -179,15 +187,17 @@ public class SyncedFolderPreferencesDialogFragment extends DialogFragment {
             view.findViewById(R.id.setting_instant_upload_on_charging_container).setVisibility(View.VISIBLE);
 
             mUploadOnChargingCheckbox = view.findViewById(
-                    R.id.setting_instant_upload_on_charging_checkbox);
+                R.id.setting_instant_upload_on_charging_checkbox);
             ThemeUtils.tintCheckbox(mUploadOnChargingCheckbox, accentColor);
         }
 
         mUploadUseSubfoldersCheckbox = view.findViewById(
-                R.id.setting_instant_upload_path_use_subfolders_checkbox);
+            R.id.setting_instant_upload_path_use_subfolders_checkbox);
         ThemeUtils.tintCheckbox(mUploadUseSubfoldersCheckbox, accentColor);
 
         mUploadBehaviorSummary = view.findViewById(R.id.setting_instant_behaviour_summary);
+
+        mFileNamePattern = view.findViewById(R.id.setting_instant_upload_filename_pattern);
 
         mCancel = view.findViewById(R.id.cancel);
         mCancel.setTextColor(accentColor);
@@ -200,12 +210,12 @@ public class SyncedFolderPreferencesDialogFragment extends DialogFragment {
 
         if (mSyncedFolder.getLocalPath() != null && mSyncedFolder.getLocalPath().length() > 0) {
             mLocalFolderPath.setText(
-                    DisplayUtils.createTextWithSpan(
-                            String.format(
-                                    getString(R.string.synced_folders_preferences_folder_path),
-                                    mSyncedFolder.getLocalPath()),
-                            mSyncedFolder.getFolderName(),
-                            new StyleSpan(Typeface.BOLD)));
+                DisplayUtils.createTextWithSpan(
+                    String.format(
+                        getString(R.string.synced_folders_preferences_folder_path),
+                        mSyncedFolder.getLocalPath()),
+                    mSyncedFolder.getFolderName(),
+                    new StyleSpan(Typeface.BOLD)));
             mLocalFolderSummary.setText(mSyncedFolder.getLocalPath());
         } else {
             mLocalFolderSummary.setText(R.string.choose_local_folder);
@@ -224,6 +234,8 @@ public class SyncedFolderPreferencesDialogFragment extends DialogFragment {
         mUploadUseSubfoldersCheckbox.setChecked(mSyncedFolder.getSubfolderByDate());
 
         mUploadBehaviorSummary.setText(mUploadBehaviorItemStrings[mSyncedFolder.getUploadActionInteger()]);
+
+        mFileNamePattern.setText(mSyncedFolder.getFileNamePattern());
     }
 
     /**
@@ -262,12 +274,12 @@ public class SyncedFolderPreferencesDialogFragment extends DialogFragment {
         mSyncedFolder.setLocalPath(path);
         mLocalFolderSummary.setText(path);
         mLocalFolderPath.setText(
-                DisplayUtils.createTextWithSpan(
-                        String.format(
-                                getString(R.string.synced_folders_preferences_folder_path),
-                                mSyncedFolder.getLocalPath()),
-                        new File(mSyncedFolder.getLocalPath()).getName(),
-                        new StyleSpan(Typeface.BOLD)));
+            DisplayUtils.createTextWithSpan(
+                String.format(
+                    getString(R.string.synced_folders_preferences_folder_path),
+                    mSyncedFolder.getLocalPath()),
+                new File(mSyncedFolder.getLocalPath()).getName(),
+                new StyleSpan(Typeface.BOLD)));
         checkAndUpdateSaveButtonState();
     }
 
@@ -305,6 +317,9 @@ public class SyncedFolderPreferencesDialogFragment extends DialogFragment {
 
         view.findViewById(R.id.setting_instant_behaviour_container).setEnabled(enable);
         view.findViewById(R.id.setting_instant_behaviour_container).setAlpha(alpha);
+
+        view.findViewById(R.id.setting_instant_upload_filename_container).setEnabled(enable);
+        view.findViewById(R.id.setting_instant_upload_filename_container).setAlpha(alpha);
     }
 
     /**
@@ -318,34 +333,34 @@ public class SyncedFolderPreferencesDialogFragment extends DialogFragment {
         view.findViewById(R.id.delete).setOnClickListener(new OnSyncedFolderDeleteClickListener());
 
         view.findViewById(R.id.setting_instant_upload_on_wifi_container).setOnClickListener(
-                new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mSyncedFolder.setWifiOnly(!mSyncedFolder.getWifiOnly());
-                        mUploadOnWifiCheckbox.toggle();
-                    }
-                });
+            new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mSyncedFolder.setWifiOnly(!mSyncedFolder.getWifiOnly());
+                    mUploadOnWifiCheckbox.toggle();
+                }
+            });
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
 
             view.findViewById(R.id.setting_instant_upload_on_charging_container).setOnClickListener(
-                    new OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            mSyncedFolder.setChargingOnly(!mSyncedFolder.getChargingOnly());
-                            mUploadOnChargingCheckbox.toggle();
-                        }
-                    });
-        }
-
-        view.findViewById(R.id.setting_instant_upload_path_use_subfolders_container).setOnClickListener(
                 new OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mSyncedFolder.setSubfolderByDate(!mSyncedFolder.getSubfolderByDate());
-                        mUploadUseSubfoldersCheckbox.toggle();
+                        mSyncedFolder.setChargingOnly(!mSyncedFolder.getChargingOnly());
+                        mUploadOnChargingCheckbox.toggle();
                     }
                 });
+        }
+
+        view.findViewById(R.id.setting_instant_upload_path_use_subfolders_container).setOnClickListener(
+            new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mSyncedFolder.setSubfolderByDate(!mSyncedFolder.getSubfolderByDate());
+                    mUploadUseSubfoldersCheckbox.toggle();
+                }
+            });
 
         view.findViewById(R.id.remote_folder_container).setOnClickListener(new OnClickListener() {
             @Override
@@ -382,39 +397,77 @@ public class SyncedFolderPreferencesDialogFragment extends DialogFragment {
         });
 
         view.findViewById(R.id.setting_instant_behaviour_container).setOnClickListener(
-                new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        showBehaviourDialog();
+            new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showBehaviourDialog();
+                }
+            });
+
+        view.findViewById(R.id.setting_instant_upload_filename_container).setOnClickListener(
+            new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showBehaviourDialog();
+                }
+            });
+
+        TextView filename_pattern_label = view.findViewById(R.id.setting_instant_upload_filename_summary);
+        ((EditText) view.findViewById(R.id.setting_instant_upload_filename_pattern)).addTextChangedListener(
+            new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    Context context = getContext();
+                    Locale currentLocale = Locale.getDefault();
+                    if(context != null)
+                    {
+                        currentLocale = context.getResources().getConfiguration().locale;
                     }
-                });
+                    String text = s.toString();
+                    text = getFileNameFromPattern(text, new Date(), currentLocale, 1, "jpg");
+
+                    filename_pattern_label.setText(String.format("%s", text));
+                    mSyncedFolder.setFileNamePattern(s.toString());
+                }
+            }
+        );
     }
 
     private void showBehaviourDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(ThemeUtils.getColoredTitle(
-                getResources().getString(R.string.prefs_instant_behaviour_dialogTitle),
-                ThemeUtils.primaryAccentColor(getContext())))
-                .setSingleChoiceItems(getResources().getTextArray(R.array.pref_behaviour_entries),
-                        mSyncedFolder.getUploadActionInteger(),
-                        new
-                                DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        mSyncedFolder.setUploadAction(
-                                                getResources().getTextArray(
-                                                        R.array.pref_behaviour_entryValues)[which].toString());
-                                        mUploadBehaviorSummary.setText(SyncedFolderPreferencesDialogFragment
-                                                .this.mUploadBehaviorItemStrings[which]);
-                                        behaviourDialogShown = false;
-                                        dialog.dismiss();
-                                    }
-                                })
-                .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        behaviourDialogShown = false;
-                    }
-                });
+            getResources().getString(R.string.prefs_instant_behaviour_dialogTitle),
+            ThemeUtils.primaryAccentColor(getContext())))
+            .setSingleChoiceItems(getResources().getTextArray(R.array.pref_behaviour_entries),
+                mSyncedFolder.getUploadActionInteger(),
+                new
+                    DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            mSyncedFolder.setUploadAction(
+                                getResources().getTextArray(
+                                    R.array.pref_behaviour_entryValues)[which].toString());
+                            mUploadBehaviorSummary.setText(SyncedFolderPreferencesDialogFragment
+                                .this.mUploadBehaviorItemStrings[which]);
+                            behaviourDialogShown = false;
+                            dialog.dismiss();
+                        }
+                    })
+            .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    behaviourDialogShown = false;
+                }
+            });
         behaviourDialogShown = true;
         behaviourDialog = builder.create();
         behaviourDialog.show();
@@ -452,7 +505,7 @@ public class SyncedFolderPreferencesDialogFragment extends DialogFragment {
     @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         behaviourDialogShown = savedInstanceState != null &&
-                savedInstanceState.getBoolean(BEHAVIOUR_DIALOG_STATE, false);
+            savedInstanceState.getBoolean(BEHAVIOUR_DIALOG_STATE, false);
 
         if (behaviourDialogShown) {
             showBehaviourDialog();
