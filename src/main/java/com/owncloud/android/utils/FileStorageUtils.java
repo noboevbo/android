@@ -154,6 +154,43 @@ public final class FileStorageUtils {
     }
 
     /**
+     * Replaced DateTimePatterns in a string with the actual values.
+     * @param fileNamePattern The file pattern (any string with DateTimePatterns in it).
+     * @param date The date which should be used.
+     * @param locale The locale which should be used for the formatting.
+     * @return The input string with DateTimePattern strings replaced by values.
+     */
+    private static String getStringWithDateTimePatternReplaced(String fileNamePattern, Date date, Locale locale) {
+        return fileNamePattern
+            .replace("dd", new SimpleDateFormat("dd", locale).format(date))
+            .replace("MMM", new SimpleDateFormat("MMM", locale).format(date))
+            .replace("MM", new SimpleDateFormat("MM", locale).format(date))
+            .replace("yyyy", new SimpleDateFormat("yyyy", locale).format(date))
+            .replace("yy", new SimpleDateFormat("yy", locale).format(date))
+            .replace("HH", new SimpleDateFormat("HH", locale).format(date))
+            .replace("hh", new SimpleDateFormat("hh", locale).format(date))
+            .replace("mm", new SimpleDateFormat("mm", locale).format(date))
+            .replace("ss", new SimpleDateFormat("ss", locale).format(date))
+            .replace("a", new SimpleDateFormat("a", locale).format(date));
+    }
+
+    /**
+     * Returns a actual file name for a given file name pattern.
+     * @param fileNamePattern The file names pattern.
+     * @param creationDate The creation date of the file.
+     * @param locale The locale which should be used for string formatting.
+     * @param fileCount The number of files already uploaded.
+     * @param fileExtension The files extension.
+     * @return The file name produced by the given file name pattern.
+     */
+    public static String getFileNameFromPattern(String fileNamePattern, Date creationDate, Locale locale, int fileCount,
+                                                String fileExtension) {
+        String formattedFileName = getStringWithDateTimePatternReplaced(fileNamePattern, creationDate, locale);
+        formattedFileName = String.format(locale, "%s %04d.%s", formattedFileName, fileCount, fileExtension);
+        return formattedFileName;
+    }
+
+    /**
      * Creates and populates a new {@link OCFile} object with the data read from the server.
      *
      * @param remote    remote file read from the server (remote file or folder).
