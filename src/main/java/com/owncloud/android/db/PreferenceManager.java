@@ -66,6 +66,7 @@ public final class PreferenceManager {
     private static final String PREF__FOLDER_SORT_ORDER = "folder_sort_order";
     private static final String PREF__FOLDER_LAYOUT = "folder_layout";
     public static final String PREF__LOCK_TIMESTAMP = "lock_timestamp";
+    private static final String PREF__AUTO_UPLOAD_COUNT = "autoUploadCount_";
 
     private PreferenceManager() {
     }
@@ -539,6 +540,27 @@ public final class PreferenceManager {
 
     public static void setLockTimestamp(Context context, long timestamp) {
         saveLongPreference(context, PREF__LOCK_TIMESTAMP, timestamp);
+    }
+
+    /**
+     * Returns the current count of uploaded files for the given local folder path.
+     * @param context Caller {@link Context}, used to access to shared preferences manager.
+     * @param localFolderPath The local folder for which the upload count should be returned
+     * */
+    public static int getAutoUploadCount(Context context, String localFolderPath)
+    {
+        return getDefaultSharedPreferences(context).getInt(PREF__AUTO_UPLOAD_COUNT + localFolderPath, 0);
+    }
+
+    /**
+     * Saves the current count of uploaded files for the given local folder path.
+     * @param context Caller {@link Context}, used to access to shared preferences manager.
+     * @param localFolderPath The local folder for which the upload count should be set
+     * @param count The file count for the local folder
+     */
+    public static void setAutoUploadCount(Context context, String localFolderPath, int count)
+    {
+        saveIntPreference(context, PREF__AUTO_UPLOAD_COUNT + localFolderPath, count);
     }
 
     private static void saveBooleanPreference(Context context, String key, boolean value) {
