@@ -182,7 +182,7 @@ public class FilesSyncJob extends Job {
                 remotePath += adaptedPath;
             }
 
-            if (fileNamePattern != null)
+            if (fileNamePattern != null && fileNamePattern.length() > 0)
             {
                 Date currentDate = new Date();
                 if (lastModificationTime > 0) {
