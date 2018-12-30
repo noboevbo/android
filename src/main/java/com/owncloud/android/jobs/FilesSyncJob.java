@@ -39,6 +39,7 @@ import com.owncloud.android.datamodel.FilesystemDataProvider;
 import com.owncloud.android.datamodel.MediaFolderType;
 import com.owncloud.android.datamodel.SyncedFolder;
 import com.owncloud.android.datamodel.SyncedFolderProvider;
+import com.owncloud.android.db.PreferenceManager;
 import com.owncloud.android.files.services.FileUploader;
 import com.owncloud.android.lib.common.utils.Log_OC;
 import com.owncloud.android.operations.UploadFileOperation;
@@ -58,6 +59,9 @@ import java.util.TimeZone;
 
 import androidx.annotation.NonNull;
 import androidx.exifinterface.media.ExifInterface;
+
+import static com.owncloud.android.utils.FileStorageUtils.getFileNameFromPattern;
+import static com.owncloud.android.utils.MimeTypeUtil.getExtension;
 
 /*
     Job that:
@@ -129,6 +133,8 @@ public class FilesSyncJob extends Job {
                             SimpleDateFormat sFormatter, FileUploader.UploadRequester requester,
                             SyncedFolder syncedFolder) {
         String remotePath;
+        String fileNamePattern;
+        String fileName;
         boolean subfolderByDate;
         Integer uploadAction;
         boolean needsCharging;
@@ -159,12 +165,14 @@ public class FilesSyncJob extends Job {
                 subfolderByDate = resources.getBoolean(R.bool.syncedFolder_light_use_subfolders);
 
                 remotePath = resources.getString(R.string.syncedFolder_remote_folder);
+                fileNamePattern = null;
             } else {
                 needsCharging = syncedFolder.getChargingOnly();
                 needsWifi = syncedFolder.getWifiOnly();
                 uploadAction = syncedFolder.getUploadAction();
                 subfolderByDate = syncedFolder.getSubfolderByDate();
                 remotePath = syncedFolder.getRemotePath();
+                fileNamePattern = syncedFolder.getFileNamePattern();
             }
 
             if (!subfolderByDate) {
@@ -174,13 +182,31 @@ public class FilesSyncJob extends Job {
                 remotePath += adaptedPath;
             }
 
+            if (fileNamePattern != null)
+            {
+                Date currentDate = new Date();
+                if (lastModificationTime > 0) {
+                    currentDate = new Date(lastModificationTime);
+                }
+                int uploadCount = PreferenceManager.getAutoUploadCount(context, syncedFolder.getLocalPath());
+                uploadCount += 1;
+                // TODO: Is it possible, that two of this jobs run at the same time and overwrite the uploadCount?
+                PreferenceManager.setAutoUploadCount(context, syncedFolder.getLocalPath(), uploadCount);
+                fileName = getFileNameFromPattern(fileNamePattern, currentDate, currentLocale, uploadCount,
+                    getExtension(file.getName()));
+            }
+            else
+            {
+                fileName = file.getName();
+            }
+
             requester.uploadFileWithOverwrite(
                     context,
                     account,
                     file.getAbsolutePath(),
                     FileStorageUtils.getInstantUploadFilePath(
                             currentLocale,
-                            remotePath, file.getName(),
+                            remotePath, fileName,
                             lastModificationTime, subfolderByDate),
                     uploadAction,
                     mimeType,
