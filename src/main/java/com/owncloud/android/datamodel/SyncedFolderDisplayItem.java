@@ -54,20 +54,20 @@ public class SyncedFolderDisplayItem extends SyncedFolder {
      * @param numberOfFiles   the UI info for number of files within the folder
      * @param type            the type of the folder
      */
-    public SyncedFolderDisplayItem(long id, String localPath, String remotePath, Boolean wifiOnly, Boolean chargingOnly,
+    public SyncedFolderDisplayItem(long id, String localPath, String remotePath, String fileNamePattern, Boolean wifiOnly, Boolean chargingOnly,
                                    Boolean subfolderByDate, String account, Integer uploadAction, Boolean enabled,
                                    List<String> filePaths, String folderName, long numberOfFiles, MediaFolderType type)
     {
-        super(id, localPath, remotePath, wifiOnly, chargingOnly, subfolderByDate, account, uploadAction, enabled, type);
+        super(id, localPath, remotePath, fileNamePattern, wifiOnly, chargingOnly, subfolderByDate, account, uploadAction, enabled, type);
         this.filePaths = filePaths;
         this.folderName = folderName;
         this.numberOfFiles = numberOfFiles;
     }
 
-    public SyncedFolderDisplayItem(long id, String localPath, String remotePath, Boolean wifiOnly, Boolean chargingOnly,
+    public SyncedFolderDisplayItem(long id, String localPath, String remotePath, String fileNamePattern, Boolean wifiOnly, Boolean chargingOnly,
                                    Boolean subfolderByDate, String account, Integer uploadAction, Boolean enabled,
                                    String folderName, MediaFolderType type) {
-        super(id, localPath, remotePath, wifiOnly, chargingOnly, subfolderByDate, account, uploadAction, enabled, type);
+        super(id, localPath, remotePath, fileNamePattern, wifiOnly, chargingOnly, subfolderByDate, account, uploadAction, enabled, type);
         this.folderName = folderName;
     }
 }

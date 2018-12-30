@@ -331,6 +331,8 @@ public class SyncedFolderProvider extends Observable {
                     ProviderMeta.ProviderTableMeta.SYNCED_FOLDER_LOCAL_PATH));
             String remotePath = cursor.getString(cursor.getColumnIndex(
                     ProviderMeta.ProviderTableMeta.SYNCED_FOLDER_REMOTE_PATH));
+            String fileNamePattern = cursor.getString(cursor.getColumnIndex(
+                    ProviderMeta.ProviderTableMeta.SYNCED_FOLDER_FILE_NAME_PATTERN));
             Boolean wifiOnly = cursor.getInt(cursor.getColumnIndex(
                     ProviderMeta.ProviderTableMeta.SYNCED_FOLDER_WIFI_ONLY)) == 1;
             Boolean chargingOnly = cursor.getInt(cursor.getColumnIndex(
@@ -346,7 +348,7 @@ public class SyncedFolderProvider extends Observable {
             MediaFolderType type = MediaFolderType.getById(cursor.getInt(cursor.getColumnIndex(
                     ProviderMeta.ProviderTableMeta.SYNCED_FOLDER_TYPE)));
 
-            syncedFolder = new SyncedFolder(id, localPath, remotePath, wifiOnly, chargingOnly, subfolderByDate,
+            syncedFolder = new SyncedFolder(id, localPath, remotePath, fileNamePattern, wifiOnly, chargingOnly, subfolderByDate,
                     accountName, uploadAction, enabled, type);
         }
         return syncedFolder;
@@ -363,6 +365,7 @@ public class SyncedFolderProvider extends Observable {
         ContentValues cv = new ContentValues();
         cv.put(ProviderMeta.ProviderTableMeta.SYNCED_FOLDER_LOCAL_PATH, syncedFolder.getLocalPath());
         cv.put(ProviderMeta.ProviderTableMeta.SYNCED_FOLDER_REMOTE_PATH, syncedFolder.getRemotePath());
+        cv.put(ProviderMeta.ProviderTableMeta.SYNCED_FOLDER_FILE_NAME_PATTERN, syncedFolder.getFileNamePattern());
         cv.put(ProviderMeta.ProviderTableMeta.SYNCED_FOLDER_WIFI_ONLY, syncedFolder.getWifiOnly());
         cv.put(ProviderMeta.ProviderTableMeta.SYNCED_FOLDER_CHARGING_ONLY, syncedFolder.getChargingOnly());
         cv.put(ProviderMeta.ProviderTableMeta.SYNCED_FOLDER_ENABLED, syncedFolder.isEnabled());

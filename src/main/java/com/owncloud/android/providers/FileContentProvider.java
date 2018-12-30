@@ -858,6 +858,7 @@ public class FileContentProvider extends ContentProvider {
                 + ProviderTableMeta._ID + " INTEGER PRIMARY KEY, "                          // id
                 + ProviderTableMeta.SYNCED_FOLDER_LOCAL_PATH + " TEXT, "           // local path
                 + ProviderTableMeta.SYNCED_FOLDER_REMOTE_PATH + " TEXT, "           // remote path
+                + ProviderTableMeta.SYNCED_FOLDER_FILE_NAME_PATTERN + " TEXT, "     // remote path
                 + ProviderTableMeta.SYNCED_FOLDER_WIFI_ONLY + " INTEGER, "          // wifi_only
                 + ProviderTableMeta.SYNCED_FOLDER_CHARGING_ONLY + " INTEGER, "      // charging only
                 + ProviderTableMeta.SYNCED_FOLDER_ENABLED + " INTEGER, "            // enabled
@@ -1889,6 +1890,20 @@ public class FileContentProvider extends ContentProvider {
                 try {
                     db.execSQL(ALTER_TABLE + ProviderTableMeta.CAPABILITIES_TABLE_NAME +
                                    ADD_COLUMN + ProviderTableMeta.CAPABILITIES_RICHDOCUMENT_TEMPLATES + " INTEGER ");
+
+                    upgraded = true;
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+            }
+
+            if (oldVersion < 43 && newVersion >= 43) {
+                Log_OC.i(SQL, "Entering in the #43 add file name pattern column");
+                db.beginTransaction();
+                try {
+                    db.execSQL(ALTER_TABLE + ProviderTableMeta.SYNCED_FOLDERS_TABLE_NAME +
+                                ADD_COLUMN + ProviderTableMeta.SYNCED_FOLDER_FILE_NAME_PATTERN + " TEXT ");
 
                     upgraded = true;
                     db.setTransactionSuccessful();

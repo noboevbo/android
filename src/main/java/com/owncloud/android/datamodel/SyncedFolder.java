@@ -40,6 +40,7 @@ public class SyncedFolder implements Serializable, Cloneable {
     private long id = UNPERSISTED_ID;
     private String localPath;
     private String remotePath;
+    private String fileNamePattern;
     private Boolean wifiOnly;
     private Boolean chargingOnly;
     private Boolean subfolderByDate;
@@ -61,11 +62,13 @@ public class SyncedFolder implements Serializable, Cloneable {
      * @param enabled         flag if synced folder config is active
      * @param type            the type of the folder
      */
-    public SyncedFolder(String localPath, String remotePath, Boolean wifiOnly, Boolean chargingOnly,
+    public SyncedFolder(long id, String localPath, String remotePath, String fileNamePattern, Boolean wifiOnly, Boolean chargingOnly,
                         Boolean subfolderByDate, String account, Integer uploadAction, Boolean enabled,
                         MediaFolderType type) {
+        this.id = id;
         this.localPath = localPath;
         this.remotePath = remotePath;
+        this.fileNamePattern = fileNamePattern;
         this.wifiOnly = wifiOnly;
         this.chargingOnly = chargingOnly;
         this.subfolderByDate = subfolderByDate;
