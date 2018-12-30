@@ -395,7 +395,7 @@ public final class MimeTypeUtil {
      * @param filename the filename
      * @return the file extension
      */
-    private static String getExtension(String filename) {
+    public static String getExtension(String filename) {
         return filename.substring(filename.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
     }
 
